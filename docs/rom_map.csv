@@ -1,0 +1,36 @@
+bank,cpu_start,cpu_end_exclusive,file_offset_start,length_bytes,classification,evidence,confidence
+00,0000,0007,000000,000007,code,"analysis/disassembly/bank_000.asm: RST 00 dispatcher; raw bytes 78 E0 E0 EA 00 20 E9",confirmed
+00,0020,0023,000020,000003,code,"analysis/disassembly/bank_000.asm: RST 20 vector JP $007A; raw bytes C3 7A 00",confirmed
+00,0066,0079,000066,000013,code,"analysis/disassembly/bank_000.asm: banked-call wrapper saves/restores AF and $FFE0; calls through HL",confirmed
+00,007A,008D,00007A,000013,code,"analysis/disassembly/bank_000.asm: RST 20 wrapper switches bank from B, calls $124C, restores $FFE0/$2000; raw bytes verified",confirmed
+00,0DD4,0F84,000DD4,0001B0,code,"src/bank_000.asm: ProcessBankedRecord; reads record offsets $11-$14 and $1C, selects/restores MBC5 low bank; returns at $0F83",confirmed
+00,0F84,0F8E,000F84,00000A,code,"src/bank_000.asm: CopyThreeBytesFromHLToDE; copies three bytes and advances HL/DE by 3; called at $0EC5/$0EE8",confirmed
+00,0F8E,0F9E,000F8E,000010,code,"src/bank_000.asm: Copy32BytesAndClear29; copies 32 bytes from [DE] to [HL], clears 29 bytes; bank-4 callers at $5C88/$5C91/$5CC0/$5CED/$5D1A/$5D52/$5E58/$5E61/$5E6A",confirmed
+00,10C0,10EA,0010C0,00002A,code,"src/bank_000.asm: CopyCgbTilemapRows; copies B interleaved CGB attribute/tile pairs per row for C rows into VRAM banks 1 and 0",confirmed
+00,10EA,1111,0010EA,000027,code,"src/bank_000.asm: FillCgbTilemapRows; fills C rows with repeated tile ID D and attribute E, width B",confirmed
+00,1111,1139,001111,000028,code,"src/bank_000.asm: FillCgbTilemapRowsWithIncrementingTileIds; fills C rows of B cells, incrementing tile ID D per cell",confirmed
+00,1139,1163,001139,00002A,code,"src/bank_000.asm: FillCgbTilemapColumnsWithIncrementingTileIds; fills B columns by C rows, incrementing tile ID D per column",confirmed
+00,1163,1182,001163,00001F,code,"src/bank_000.asm: FillStatSafeMemoryWithWord; writes alternating H/L bytes for B 16-byte blocks with STAT polling",confirmed
+00,1188,11BC,001188,000034,code,"src/bank_000.asm: Copy16BytesPerBIteration; copies 16 bytes per B iteration from HL to DE; used by bank 3F graphics callers",confirmed
+00,11C2,11D8,0011C2,000016,code,"src/bank_000.asm: Copy16BytesPerBIterationWithStatWait; copies 16 bytes per B iteration with STAT mode-0 waits",confirmed
+00,124C,12DB,00124C,00008F,code,"analysis/disassembly/bank_000.asm: variable-output back-reference decoder ending RET at $12DA",confirmed
+00,23A8,23E9,0023A8,000041,code,"src/bank_000.asm: CopyTilesToVram; transfers 16*A bytes for even A, waits on rSTAT and services each 32-byte group; bank-4 callers at $5C4A/$5C5E/$5C69/$5C7F/$5E4F",confirmed
+04,5C42,5E11,011C42,0001CF,code,"src/bank_004.asm: SetupBank4GraphicsState; bank-0 $1E43-$1E48 dispatches bank 04:$5C42 via RST $08; routine returns at $5E10",confirmed
+04,5E11,5E2C,011E11,00001B,code,"src/bank_004.asm: ServiceD700D740ForBIterations; repeats calls to bank-0 $0DD4 for $D700/$D740 and service calls; ends RET at $5E2B",confirmed
+04,5E42,5E8C,011E42,00004A,code,"src/bank_004.asm: Load42TilesAndInitializeD7Blocks; loads 42 tiles and initializes template-based blocks; RET at $5E8B; caller not established",strongly_indicated
+04,5E8C,5E9F,011E8C,000013,code,"src/bank_004.asm: ServiceD700D740D780Once; calls bank-0 $0DD4 for $D700/$D740/$D780; RET at $5E9E",confirmed
+04,5E9F,605F,011E9F,0001C0,data,"bank 4:$5C42 calls $23A8 with A=$1C, consuming 28*16 bytes from this source",confirmed
+04,605F,61BF,01205F,000160,data,"bank 4:$5C42 conditionally calls $23A8 with A=$16, consuming 22*16 bytes; sliding-window source at $607F is inside this range",confirmed
+04,61BF,627F,0121BF,0000C0,data,"bank 4:$5C61 calls $23A8 with A=$0C, consuming 12*16 bytes from this source",confirmed
+04,627F,651F,01227F,0002A0,data,"bank 4:$5E4A calls CopyTilesToVram with A=$2A, consuming 42*16 bytes; indexed gfx/bank4_627F_tiles.png converts losslessly to 2bpp",confirmed
+29,4069,40E1,0A4069,000078,code,"analysis/disassembly/bank_029.asm: caller sequence invokes $124C on streams at $5B04,$5738,$68C8,$6996,$6718 and copies decoded buffers",confirmed
+2C,401B,4037,0B001B,00001C,code,"analysis/disassembly/bank_02c.asm: calls $124C on bank-local stream $42CA then copies decoded output to VRAM",confirmed
+31,675D,6CC0,0C675D,000563,data,"bank 3F:$4036 decompresses this stream; 1379 compressed bytes produce 1795 bytes, of which the caller transfers 1760; source span overlaps next stream by 3 bytes",confirmed
+31,6CBD,7028,0C6CBD,00036B,data,"bank 3F:$404A decompresses this stream; 875 compressed bytes produce 1441 bytes, of which the caller transfers 1440; source span overlaps next stream by 1 byte",confirmed
+31,7027,7149,0C7027,000122,data,"bank 3F:$406C decompresses this stream; 290 compressed bytes produce 721 bytes, of which $10C0 transfers 720 as CGB tilemap attribute/tile pairs",confirmed
+3B,6EDD,6F0A,0EEEDD,00002D,code,"analysis/disassembly/bank_03b.asm: sets $C429 descriptor pointer, calls $7161, then copies generated blocks from $C929",confirmed
+3B,7161,71D3,0EF161,000072,code,"analysis/disassembly/bank_03b.asm: builder/transform routine; writes a 15-byte descriptor and generated blocks; RET at $71D2",confirmed
+3C,5FAC,5FD9,0F1FAC,00002D,code,"analysis/disassembly/bank_03c.asm: sets $C429 descriptor pointer, calls $6598, then copies generated blocks from $C929",confirmed
+3C,6598,65FC,0F2598,000064,code,"analysis/disassembly/bank_03c.asm: builder/transform routine; writes a 9-byte descriptor and generated blocks; RET at $65FB",confirmed
+36,4000,4023,0D8000,000023,code,"analysis/disassembly/bank_036.asm: entry reads descriptor pointer through $C312, clears target table, then begins processing entries",strongly_indicated
+36,66F0,6724,0DA6F0,000034,unknown,"analysis/disassembly/bank_036.asm renders implausible instructions around $6700; code/data boundary not established",hypothesis

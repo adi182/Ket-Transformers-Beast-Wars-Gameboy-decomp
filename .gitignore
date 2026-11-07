@@ -1,0 +1,6 @@
+rom/*.gb
+rom/*.gbc
+analysis/banks/
+build/
+__pycache__/
+*.pyc
